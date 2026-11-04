@@ -28,6 +28,12 @@
 </header>
 
 <main>
+  <div class="periode-wrap">
+    <div class="groupe periode" id="f-periode">
+      <button data-v="" class="actif">Toutes les données</button><button data-v="memoire" id="b-memoire">Période du mémoire</button>
+    </div>
+    <span class="note" id="periode-note"></span>
+  </div>
   <!-- CARTE -->
   <section id="p-carte" class="panneau actif">
     <div class="filtres">
@@ -98,7 +104,7 @@
     <p class="note">Valeurs en dBm. Quand le téléphone ne donne pas de valeur fiable en dBm, le niveau en barres est utilisé (4 barres : excellent, 3 : bon, 2 : moyen, 0 ou 1 : faible).</p>
     <h3>Nettoyage des données</h3>
     <ul>
-      <li>Période de collecte à partir du 2 novembre 2026 (le pré-test est exclu).</li>
+      <li>Période de collecte à partir du 2 novembre 2026 (le pré-test est exclu). Le bouton « Période du mémoire » affiche exactement les données analysées dans le mémoire ; « Toutes les données » inclut les mesures reçues depuis, la collecte continuant après le dépôt.</li>
       <li>Seules les mesures situées dans la commune de Diofior sont retenues.</li>
       <li>Les mesures d'émulateurs, d'opérateurs étrangers et les incohérences entre la carte SIM et le réseau sont écartées.</li>
       <li>Les valeurs de signal physiquement impossibles sont ignorées.</li>

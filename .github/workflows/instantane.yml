@@ -1,0 +1,26 @@
+name: Copie quotidienne des résultats
+
+# Chaque jour : interroge la base (elle reste active) et enregistre une copie de secours
+# des résultats agrégés dans secours/, utilisée par le site si la base ne répond pas.
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  copie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copier les résultats
+        run: python3 scripts/instantane.py
+      - name: Enregistrer la copie
+        run: |
+          git config user.name "diofior-connect-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add secours
+          git commit -m "Copie des résultats du $(date -u +%F)" || echo "Rien de nouveau"
+          git push

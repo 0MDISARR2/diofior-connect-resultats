@@ -52,3 +52,6 @@ footer{text-align:center;color:var(--gris);font-size:12.5px;padding:24px 16px 32
 .leaflet-popup-content{font-family:'Poppins',sans-serif;font-size:13px;margin:10px 14px}
 .leaflet-popup-content b{font-size:14px}
 a{color:var(--vert)}
+.periode-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-bottom:12px}
+.periode-wrap .note{margin:0}
+.bandeau.secours{background:#FFE0B2}

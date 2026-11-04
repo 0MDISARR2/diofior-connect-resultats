@@ -11,18 +11,36 @@ const COUL_OP = { Orange: '#FF7900', Yas: '#1E3A8A', Expresso: '#E0B000' };
 const OPERATEURS = ['Orange', 'Yas', 'Expresso'];
 const CENTRE = [14.1905, -16.6640];
 
+// Période affichée : '' = toutes les données, 'memoire' = jusqu'à la fin de la période du mémoire
+let periode = '', finMemoire = null, enSecours = false;
 const cache = {};
+// Nom du fichier de secours (copie quotidienne faite par .github/workflows/instantane.yml)
+const nomSecours = (nom, p) => `secours/${nom}_${['p_operateur', 'p_reseau', 'p_jusqu_au'].map(k => p[k] || 'x').join('_')}.json`;
 async function rpc(nom, params = {}) {
-  const cle = nom + JSON.stringify(params);
+  const p = { ...params };
+  if (periode === 'memoire' && finMemoire && nom !== 'resultats_info') p.p_jusqu_au = finMemoire;
+  const cle = nom + JSON.stringify(p);
   if (!cache[cle]) {
     cache[cle] = fetch(`${SUPABASE_URL}/rest/v1/rpc/${nom}`, {
       method: 'POST',
       headers: { apikey: SUPABASE_CLE, 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
+      body: JSON.stringify(p),
     }).then(r => { if (!r.ok) throw new Error(`${nom} : HTTP ${r.status}`); return r.json(); })
-      .catch(e => { delete cache[cle]; throw e; });
+      .catch(async e => {
+        // Base indisponible (ex. projet en pause) : on se rabat sur la dernière copie du site
+        const r = await fetch(nomSecours(nom, p)).catch(() => null);
+        if (!r || !r.ok) { delete cache[cle]; throw e; }
+        signalerSecours(); return r.json();
+      });
   }
   return cache[cle];
+}
+function signalerSecours() {
+  if (enSecours) return; enSecours = true;
+  fetch('secours/genere_le.json').then(r => r.json()).then(g => {
+    $('bandeau').textContent = `Base momentanément indisponible · copie des résultats du ${new Date(g.genere_le).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' })}`;
+  }).catch(() => { $('bandeau').textContent = 'Base momentanément indisponible · copie de secours des résultats'; });
+  $('bandeau').classList.add('secours');
 }
 
 const $ = id => document.getElementById(id);
@@ -112,6 +130,8 @@ function initCarte() {
 }
 
 // ---------- 2. Opérateurs ----------
+const graphes = {};
+function graphe(id, config) { graphes[id]?.destroy(); graphes[id] = new Chart($(id), config); }
 Chart.defaults.font.family = "'Poppins', system-ui, sans-serif";
 Chart.defaults.color = '#5E6660';
 Chart.defaults.locale = 'fr-FR';
@@ -128,7 +148,7 @@ async function initOperateurs() {
     $('lead-op').textContent = parOp.filter(o => o.classe).map(o =>
       `${o.op} : ${pct(o.c[0] + o.c[1], o.classe)} % de mesures bonnes ou excellentes`).join(' · ') + '.';
     // graphique qualité (100 % empilé)
-    new Chart($('g-qualite'), {
+    graphe('g-qualite', {
       type: 'bar',
       data: { labels: parOp.map(o => o.op), datasets: QUALITES.map((q, i) => ({
         label: q, backgroundColor: COUL_Q[i], data: parOp.map(o => o.classe ? 100 * o.c[i] / o.classe : 0),
@@ -137,7 +157,7 @@ async function initOperateurs() {
     });
     // graphique techno
     const TECH = ['4G', '3G', '2G', 'aucun'], COUL_T = ['#0F4A23', '#4C9A62', '#A7D3B2', '#C8CCC6'];
-    new Chart($('g-techno'), {
+    graphe('g-techno', {
       type: 'bar',
       data: { labels: parOp.map(o => o.op), datasets: TECH.map((t, i) => ({
         label: t === 'aucun' ? 'Aucun réseau' : t, backgroundColor: COUL_T[i],
@@ -170,8 +190,9 @@ function optionsEmpile(titre) {
 }
 
 // ---------- 3. Zones ----------
-let carte2, couche2;
-async function majZones(mode) {
+let carte2, couche2, modeZones = 'avancement';
+async function majZones(mode = modeZones) {
+  modeZones = mode;
   $('charg2').classList.add('visible');
   try {
     const hex = await rpc('resultats_grille', {});
@@ -210,7 +231,7 @@ async function initParticipation() {
     $('tuiles').innerHTML = [[fmt(total), 'mesures retenues'], [fmt(tel), 'téléphones participants'], [jours.length, 'jours de collecte'], [couv + ' %', 'de la commune bien mesurée']]
       .map(([v, l]) => `<div class="tuile"><b>${v}</b><span>${l}</span></div>`).join('');
     const lab = jours.map(j => new Date(j.jour + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }));
-    new Chart($('g-jours'), {
+    graphe('g-jours', {
       data: { labels: lab, datasets: [
         { type: 'bar', label: 'Mesures', data: jours.map(j => j.nb_mesures), backgroundColor: '#1E7B3A', borderRadius: 6, yAxisID: 'y' },
         { type: 'line', label: 'Téléphones actifs', data: jours.map(j => j.nb_participants), borderColor: '#F2A900', backgroundColor: '#F2A900', yAxisID: 'y2', tension: .3 } ] },
@@ -225,7 +246,32 @@ async function initParticipation() {
 
 // ---------- Démarrage ----------
 document.querySelectorAll('.carte-graph canvas').forEach(c => { c.parentElement.style.height = (+c.getAttribute('height') + 28) + 'px'; });
+const dateFr = (d, o = { day: 'numeric', month: 'long' }) => new Date(d + (d.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('fr-FR', o);
 $('maj').textContent = 'données consultées le ' + new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+const infoP = rpc('resultats_info').then(([i]) => {
+  if (!i) return;
+  finMemoire = i.fin_periode_memoire;
+  if (finMemoire) $('b-memoire').textContent = `Période du mémoire (${dateFr(i.debut_collecte, { day: 'numeric' })}–${dateFr(finMemoire, { day: 'numeric', month: 'short' })})`;
+  if (i.derniere_mesure && !enSecours) {
+    const d = new Date(i.derniere_mesure);
+    $('bandeau').textContent = `Collecte en cours · dernière mesure reçue le ${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+  }
+  majNotePeriode();
+}).catch(e => console.error(e));
+function majNotePeriode() {
+  $('periode-note').textContent = periode === 'memoire' && finMemoire
+    ? (new Date() > new Date(finMemoire + 'T23:59:59')
+        ? `Données arrêtées au ${dateFr(finMemoire)} : ce sont les chiffres analysés dans le mémoire.`
+        : `Période du mémoire en cours, jusqu'au ${dateFr(finMemoire)} inclus.`)
+    : 'Toutes les mesures reçues, mises à jour en direct.';
+}
+groupe('f-periode', v => {
+  periode = v; majNotePeriode();
+  if (prets.carte) majCarte1();
+  if (prets.zones) majZones();
+  if (prets.operateurs) initOperateurs();
+  if (prets.participation) initParticipation();
+});
 const ONGLETS = ['carte', 'operateurs', 'zones', 'participation', 'methode'];
 const depuisAdresse = () => { const h = location.hash.slice(1); ouvrir(ONGLETS.includes(h) ? h : 'carte'); };
 window.addEventListener('hashchange', depuisAdresse);
