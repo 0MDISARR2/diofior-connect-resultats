@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diofior Connect · Résultats</title>
+<meta name="description" content="Résultats de la cartographie participative de la couverture réseau mobile dans la commune de Diofior (Sénégal).">
+<link rel="icon" href="symbole.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="entete">
+  <div class="marque">
+    <img src="symbole.png" alt="" width="40" height="40">
+    <div><h1>Diofior Connect</h1><p>Couverture réseau · commune de Diofior</p></div>
+  </div>
+  <div class="bandeau" id="bandeau">Collecte en cours · résultats provisoires</div>
+  <nav class="onglets" id="onglets">
+    <button data-onglet="carte" class="actif">Carte</button>
+    <button data-onglet="operateurs">Opérateurs</button>
+    <button data-onglet="zones">Zones</button>
+    <button data-onglet="participation">Participation</button>
+    <button data-onglet="methode">Méthode</button>
+  </nav>
+</header>
+
+<main>
+  <!-- CARTE -->
+  <section id="p-carte" class="panneau actif">
+    <div class="filtres">
+      <div class="groupe" id="f-operateur">
+        <button data-v="" class="actif">Tous</button><button data-v="Orange">Orange</button><button data-v="Yas">Yas</button><button data-v="Expresso">Expresso</button>
+      </div>
+      <div class="groupe" id="f-reseau">
+        <button data-v="" class="actif">Tous réseaux</button><button data-v="4G">4G</button><button data-v="3G">3G</button><button data-v="2G">2G</button>
+      </div>
+    </div>
+    <div class="carte-wrap"><div id="map1" class="map"></div><div class="chargement" id="charg1">Chargement…</div></div>
+    <div class="legende" id="legende1"></div>
+    <p class="note" id="resume1"></p>
+  </section>
+
+  <!-- OPERATEURS -->
+  <section id="p-operateurs" class="panneau">
+    <h2>Qualité du signal par opérateur</h2>
+    <p class="lead" id="lead-op"></p>
+    <div class="carte-graph"><canvas id="g-qualite" height="230"></canvas></div>
+    <h3>Type de réseau capté</h3>
+    <p class="note">Part des mesures en 4G, 3G, 2G ou sans réseau, pour chaque opérateur.</p>
+    <div class="carte-graph"><canvas id="g-techno" height="200"></canvas></div>
+    <h3>Signal médian par réseau</h3>
+    <div class="tableau-wrap"><table id="t-signal"></table></div>
+    <p class="note">4G : RSRP · 3G : RSCP · 2G : RSSI, en dBm. Plus la valeur est proche de 0, meilleur est le signal. Les seuils diffèrent selon le réseau (voir Méthode).</p>
+    <h3>Tests de débit</h3>
+    <div class="tableau-wrap"><table id="t-debit"></table></div>
+  </section>
+
+  <!-- ZONES -->
+  <section id="p-zones" class="panneau">
+    <div class="filtres">
+      <div class="groupe" id="f-zones">
+        <button data-v="avancement" class="actif">Avancement de la collecte</button><button data-v="faible">Zones de signal faible</button>
+      </div>
+    </div>
+    <div class="carte-wrap"><div id="map2" class="map"></div><div class="chargement" id="charg2">Chargement…</div></div>
+    <div class="legende" id="legende2"></div>
+    <p class="note" id="resume2"></p>
+  </section>
+
+  <!-- PARTICIPATION -->
+  <section id="p-participation" class="panneau">
+    <div class="tuiles" id="tuiles"></div>
+    <h3>Mesures reçues par jour</h3>
+    <div class="carte-graph"><canvas id="g-jours" height="220"></canvas></div>
+    <p class="note">Seules les mesures retenues après nettoyage sont comptées (voir Méthode). Le nombre de téléphones est compté de façon anonyme.</p>
+  </section>
+
+  <!-- METHODE -->
+  <section id="p-methode" class="panneau texte">
+    <h2>Comment ces résultats sont produits</h2>
+    <p>Diofior Connect est une application Android gratuite. Des habitants et des élèves du lycée et du CEM de Diofior l'utilisent pendant leurs trajets : le téléphone lit le signal du réseau mobile et l'associe à sa position GPS.</p>
+    <h3>Données collectées</h3>
+    <p>Position GPS, opérateur, type de réseau (2G, 3G, 4G), identifiant de l'antenne, puissance du signal, modèle du téléphone, date et heure. Aucun nom, numéro, contact ni message n'est collecté. Chaque participant donne son accord au premier lancement (loi n° 2008-12 sur la protection des données personnelles).</p>
+    <h3>Ce que montre ce site</h3>
+    <p>Uniquement des résultats regroupés : la commune est découpée en hexagones de 250 m de côté, et un hexagone n'est coloré qu'à partir de 3 mesures. Aucun point individuel n'est publié.</p>
+    <h3>Seuils de qualité</h3>
+    <div class="tableau-wrap"><table>
+      <thead><tr><th>Qualité</th><th>4G (RSRP)</th><th>3G (RSCP)</th><th>2G (RSSI)</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pastille q0"></span>Excellent</td><td>≥ −80</td><td>≥ −75</td><td>≥ −70</td></tr>
+        <tr><td><span class="pastille q1"></span>Bon</td><td>−80 à −90</td><td>−75 à −85</td><td>−70 à −85</td></tr>
+        <tr><td><span class="pastille q2"></span>Moyen</td><td>−90 à −100</td><td>−85 à −95</td><td>−85 à −100</td></tr>
+        <tr><td><span class="pastille q3"></span>Faible</td><td>&lt; −100</td><td>&lt; −95</td><td>&lt; −100</td></tr>
+      </tbody></table></div>
+    <p class="note">Valeurs en dBm. Quand le téléphone ne donne pas de valeur fiable en dBm, le niveau en barres est utilisé (4 barres : excellent, 3 : bon, 2 : moyen, 0 ou 1 : faible).</p>
+    <h3>Nettoyage des données</h3>
+    <ul>
+      <li>Période de collecte à partir du 2 novembre 2026 (le pré-test est exclu).</li>
+      <li>Seules les mesures situées dans la commune de Diofior sont retenues.</li>
+      <li>Les mesures d'émulateurs, d'opérateurs étrangers et les incohérences entre la carte SIM et le réseau sont écartées.</li>
+      <li>Les valeurs de signal physiquement impossibles sont ignorées.</li>
+    </ul>
+    <h3>Limites</h3>
+    <p>Les mesures dépendent des trajets des participants et des téléphones utilisés : deux modèles peuvent afficher quelques dBm d'écart au même endroit. Les zones peu visitées sont moins fiables. Promobile et Kirène utilisent le réseau d'Orange et sont comptés avec Orange.</p>
+    <h3>Sources</h3>
+    <p>Mesures : participants de Diofior Connect. Contour de la commune et fond de carte : © contributeurs <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL).</p>
+    <p class="auteur">Projet de mémoire de Licence 3 · Mouhamed Sarr · ISI Dakar, 2026</p>
+  </section>
+</main>
+
+<footer>Diofior Connect · <span id="maj"></span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
