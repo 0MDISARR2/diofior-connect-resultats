@@ -14,7 +14,7 @@ jobs:
   copie:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Copier les résultats
         run: python3 scripts/instantane.py
       - name: Enregistrer la copie
