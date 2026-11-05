@@ -28,7 +28,7 @@ enregistrer('resultats_info', {}, info)
 fin = info[0]['fin_periode_memoire'] if info else None
 for jusqu in [None, fin] if fin else [None]:
     base = {'p_jusqu_au': jusqu} if jusqu else {}
-    for nom in ('resultats_operateurs', 'resultats_debit', 'resultats_participation'):
+    for nom in ('resultats_operateurs', 'resultats_debit', 'resultats_participation', 'resultats_hors_zone_resume'):
         enregistrer(nom, base, rpc(nom, base))
     for op in (None, 'Orange', 'Yas', 'Expresso'):
         for res in (None, '4G', '3G', '2G'):

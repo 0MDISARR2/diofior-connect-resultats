@@ -113,6 +113,7 @@ async function majCarte1() {
   try {
     const p = {}; if (filtre.op) p.p_operateur = filtre.op; if (filtre.reseau) p.p_reseau = filtre.reseau;
     afficherSenegal(carte1, filtre.etendue === 'tout');
+    $('hz-bloc').hidden = filtre.etendue !== 'tout';
     if (filtre.etendue === 'tout') { await majAuDela(p); $('charg1').classList.remove('visible'); return; }
     const hex = await rpc('resultats_grille', p);
     couche1?.remove();
@@ -149,12 +150,21 @@ async function majAuDela(p) {
   if (hex.length) carte1.fitBounds(couche1.getBounds(), { padding: [20, 20], maxZoom: 14 });
   const hors = hex.filter(h => !h.dans_commune).length;
   $('resume1').textContent = `Toutes les mesures, y compris celles faites pendant les trajets hors de la commune : ${hors} zone${hors > 1 ? 's' : ''} hors de Diofior. ` +
+    'Hors de la commune, une zone n\'apparaît que si au moins 2 téléphones différents y sont passés, pour ne jamais montrer le trajet d\'une seule personne. ' +
     'Ces données ne font pas partie de l\'analyse du mémoire (perspectives) ; la zone d\'étude est la commune de Diofior (tirets verts), la frontière du Sénégal est en violet. Pour protéger la vie privée, les hexagones font ici 500 m de côté et comptent au moins 5 mesures.';
+  // tableau résumé hors commune
+  rpc('resultats_hors_zone_resume').then(rows => {
+    const T = ['4G', '3G', '2G', 'aucun'];
+    $('t-hz').innerHTML = `<thead><tr><th>Opérateur</th>${T.map(t => `<th class="num">${t === 'aucun' ? 'Aucun réseau' : t}</th>`).join('')}<th class="num">Mesures</th></tr></thead><tbody>` +
+      OPERATEURS.map(op => { const r = rows.filter(x => x.operateur === op); const n = r.reduce((s, x) => s + x.nb, 0);
+        return `<tr><td><i class="op" style="background:${COUL_OP[op]}"></i>${op}</td>${T.map(t => { const x = r.find(y => y.reseau === t); return `<td class="num">${n && x ? pct(x.nb, n) + ' %' : '–'}</td>`; }).join('')}<td class="num">${fmt(n)}</td></tr>`; }).join('') + '</tbody>';
+  }).catch(e => console.error(e));
 }
 function popupHex(h) {
   let s = `<b>${h.qualite == null ? 'Pas assez de mesures' : QUALITES[h.qualite]}</b><br>${fmt(h.nb)} mesure${h.nb > 1 ? 's' : ''}`;
   if (h.signal_median != null) s += `<br>Signal médian : ${h.signal_median} dBm`;
-  if (h.part_4g != null) s += `<br>Part de 4G : ${Math.round(h.part_4g * 100)} %`;
+  if (h.part_3g != null) s += `<br>4G ${Math.round(h.part_4g * 100)} % · 3G ${Math.round(h.part_3g * 100)} % · 2G ${Math.round(h.part_2g * 100)} %` + (h.part_aucun ? ` · aucun réseau ${Math.round(h.part_aucun * 100)} %` : '');
+  else if (h.part_4g != null) s += `<br>Part de 4G : ${Math.round(h.part_4g * 100)} %`;
   if (h.debit_median != null) s += `<br>Débit médian : ${h.debit_median} Mb/s`;
   return s;
 }
@@ -283,6 +293,44 @@ async function initParticipation() {
     });
   } catch (e) { erreur($('tuiles'), e); }
 }
+
+// ---------- Téléchargements (résultats agrégés uniquement) ----------
+function telecharger(nom, contenu, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenu], { type }));
+  a.download = nom; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+// Séparateur « ; » et virgule décimale : s'ouvre directement dans Excel en français
+const cellule = v => v == null ? '' : /^-?\d+\.\d+$/.test(String(v)) ? String(v).replace('.', ',') : String(v);
+const versCsv = (lignes, cols) => '\ufeff' + [cols.join(';'), ...lignes.map(l => cols.map(c => cellule(l[c])).join(';'))].join('\n');
+document.querySelector('.telechargements').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const suffixe = periode === 'memoire' && finMemoire ? `_jusquau_${finMemoire}` : `_${new Date().toISOString().slice(0, 10)}`;
+  $('dl-note').textContent = 'Préparation…';
+  try {
+    const k = b.dataset.dl;
+    if (k.startsWith('grille')) {
+      const hex = await rpc('resultats_grille', {});
+      const props = h => ({ nb_mesures: h.nb, qualite: h.qualite == null ? '' : QUALITES[h.qualite], part_4g: h.part_4g, debit_median_mbps: h.debit_median, nb_operateurs: h.nb_operateurs });
+      if (k === 'grille-geojson') {
+        telecharger(`diofior_connect_grille${suffixe}.geojson`, JSON.stringify({ type: 'FeatureCollection',
+          features: hex.map(h => ({ type: 'Feature', geometry: h.geojson, properties: props(h) })) }), 'application/geo+json');
+      } else {
+        const lignes = hex.map(h => { const c = h.geojson.coordinates[0].slice(0, -1); return { ...props(h),
+          longitude: (c.reduce((s, p) => s + p[0], 0) / c.length).toFixed(6), latitude: (c.reduce((s, p) => s + p[1], 0) / c.length).toFixed(6) }; });
+        telecharger(`diofior_connect_grille${suffixe}.csv`, versCsv(lignes, ['longitude', 'latitude', 'nb_mesures', 'qualite', 'part_4g', 'debit_median_mbps', 'nb_operateurs']), 'text/csv');
+      }
+    } else if (k === 'operateurs-csv') {
+      const rows = await rpc('resultats_operateurs');
+      telecharger(`diofior_connect_operateurs${suffixe}.csv`, versCsv(rows, ['operateur', 'reseau', 'nb', 'signal_median', 'excellent', 'bon', 'moyen', 'faible', 'aucun']), 'text/csv');
+    } else {
+      const rows = await rpc('resultats_participation');
+      telecharger(`diofior_connect_participation${suffixe}.csv`, versCsv(rows, ['jour', 'nb_mesures', 'nb_participants']), 'text/csv');
+    }
+    $('dl-note').textContent = 'Fichier téléchargé.';
+  } catch (err) { erreur($('dl-note'), err); }
+});
 
 // ---------- Démarrage ----------
 document.querySelectorAll('.carte-graph canvas').forEach(c => { c.parentElement.style.height = (+c.getAttribute('height') + 28) + 'px'; });

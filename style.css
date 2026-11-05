@@ -57,3 +57,6 @@ a{color:var(--vert)}
 .bandeau.secours{background:#FFE0B2}
 .leaflet-control-layers{font-family:'Poppins',sans-serif;font-size:13px;border-radius:12px!important}
 .leaflet-control-layers-expanded{padding:6px 10px}
+.telechargements{display:flex;flex-wrap:wrap;gap:8px}
+.telechargements button{font:inherit;font-size:13.5px;font-weight:600;color:var(--vert-fonce);background:var(--carte);border:1.5px solid var(--vert);border-radius:20px;padding:8px 14px;cursor:pointer}
+.telechargements button:hover{background:var(--vert-clair)}

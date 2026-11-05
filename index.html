@@ -50,6 +50,11 @@
     <div class="carte-wrap"><div id="map1" class="map"></div><div class="chargement" id="charg1">Chargement…</div></div>
     <div class="legende" id="legende1"></div>
     <p class="note" id="resume1"></p>
+    <div id="hz-bloc" hidden>
+      <h3>Réseaux captés hors de la commune</h3>
+      <div class="tableau-wrap"><table id="t-hz"></table></div>
+      <p class="note">Toutes les mesures faites hors de la commune de Diofior, par opérateur.</p>
+    </div>
   </section>
 
   <!-- OPERATEURS -->
@@ -114,6 +119,15 @@
     </ul>
     <h3>Limites</h3>
     <p>Les mesures dépendent des trajets des participants et des téléphones utilisés : deux modèles peuvent afficher quelques dBm d'écart au même endroit. Les zones peu visitées sont moins fiables. Promobile et Kirène utilisent le réseau d'Orange et sont comptés avec Orange.</p>
+    <h3>Télécharger les résultats</h3>
+    <p>Résultats regroupés, sans aucun point individuel, pour la période choisie en haut de la page. Libres de réutilisation en citant la source « Diofior Connect ».</p>
+    <div class="telechargements">
+      <button data-dl="grille-geojson">Carte de la commune (GeoJSON)</button>
+      <button data-dl="grille-csv">Carte de la commune (CSV)</button>
+      <button data-dl="operateurs-csv">Résultats par opérateur (CSV)</button>
+      <button data-dl="participation-csv">Participation par jour (CSV)</button>
+    </div>
+    <p class="note" id="dl-note"></p>
     <h3>Sources</h3>
     <p>Mesures : participants de Diofior Connect. Contour de la commune et fond de carte : © contributeurs <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL). Frontière du Sénégal : Natural Earth (domaine public). Imagerie satellite : © Esri, Maxar, Earthstar Geographics.</p>
     <p class="auteur">Projet de mémoire de Licence 3 · Mouhamed Sarr · ISI Dakar, 2026</p>
