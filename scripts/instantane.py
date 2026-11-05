@@ -36,6 +36,7 @@ for jusqu in [None, fin] if fin else [None]:
             if op: p['p_operateur'] = op
             if res: p['p_reseau'] = res
             enregistrer('resultats_grille', p, rpc('resultats_grille', p))
+            enregistrer('resultats_hors_zone', p, rpc('resultats_hors_zone', p))
 with open(os.path.join(DOSSIER, 'genere_le.json'), 'w') as f:
     json.dump({'genere_le': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')}, f)
 print('Copie terminée :', len(os.listdir(DOSSIER)), 'fichiers')

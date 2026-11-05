@@ -84,15 +84,16 @@ function nouvelleCarte(id) {
 function hexFeature(h) { return { type: 'Feature', geometry: h.geojson, properties: h }; }
 
 // ---------- 1. Carte de qualité ----------
-let carte1, couche1, filtre = { op: '', reseau: '' };
+let carte1, couche1, filtre = { op: '', reseau: '', etendue: '' };
 function legendeQualite() {
   $('legende1').innerHTML = QUALITES.map((q, i) => `<span><i class="pastille q${i}"></i>${q}</span>`).join('') +
-    '<span><i class="pastille qn"></i>Moins de 3 mesures</span>';
+    '<span><i class="pastille qn"></i>Pas assez de mesures</span>';
 }
 async function majCarte1() {
   $('charg1').classList.add('visible');
   try {
     const p = {}; if (filtre.op) p.p_operateur = filtre.op; if (filtre.reseau) p.p_reseau = filtre.reseau;
+    if (filtre.etendue === 'tout') { await majAuDela(p); $('charg1').classList.remove('visible'); return; }
     const hex = await rpc('resultats_grille', p);
     couche1?.remove();
     const vus = hex.filter(h => h.nb > 0);
@@ -115,6 +116,21 @@ async function majCarte1() {
   } catch (e) { erreur($('resume1'), e); }
   $('charg1').classList.remove('visible');
 }
+// Carte "au-delà de Diofior" : toutes les mesures, hexagones de 500 m, au moins 5 mesures
+async function majAuDela(p) {
+  const hex = await rpc('resultats_hors_zone', p);
+  couche1?.remove();
+  couche1 = L.geoJSON({ type: 'FeatureCollection', features: hex.map(hexFeature) }, {
+    style: f => { const q = f.properties.qualite; return q == null
+      ? { color: '#8a908a', weight: 1, fillColor: '#B9BFB8', fillOpacity: .45 }
+      : { color: '#fff', weight: 1, fillColor: COUL_Q[q], fillOpacity: f.properties.dans_commune ? .45 : .7 }; },
+    onEachFeature: (f, l) => l.bindPopup(popupHex(f.properties) + (f.properties.dans_commune ? '' : '<br><i>Hors de la zone d\'étude</i>')),
+  }).addTo(carte1);
+  if (hex.length) carte1.fitBounds(couche1.getBounds(), { padding: [20, 20], maxZoom: 14 });
+  const hors = hex.filter(h => !h.dans_commune).length;
+  $('resume1').textContent = `Toutes les mesures, y compris celles faites pendant les trajets hors de la commune : ${hors} zone${hors > 1 ? 's' : ''} hors de Diofior. ` +
+    'Ces données ne font pas partie de l\'analyse du mémoire (perspectives). Pour protéger la vie privée, les hexagones font ici 500 m de côté et comptent au moins 5 mesures.';
+}
 function popupHex(h) {
   let s = `<b>${h.qualite == null ? 'Pas assez de mesures' : QUALITES[h.qualite]}</b><br>${fmt(h.nb)} mesure${h.nb > 1 ? 's' : ''}`;
   if (h.signal_median != null) s += `<br>Signal médian : ${h.signal_median} dBm`;
@@ -126,6 +142,10 @@ function initCarte() {
   carte1 = nouvelleCarte('map1'); legendeQualite();
   groupe('f-operateur', v => { filtre.op = v; majCarte1(); });
   groupe('f-reseau', v => { filtre.reseau = v; majCarte1(); });
+  groupe('f-etendue', v => {
+    filtre.etendue = v; majCarte1();
+    if (!v && commune) carte1.fitBounds(L.geoJSON(commune, { filter: f => f.geometry.type !== 'Point' }).getBounds(), { padding: [10, 10] });
+  });
   majCarte1();
 }
 
