@@ -72,14 +72,33 @@ let commune = null;
 const communeP = fetch('commune.geojson').then(r => r.json()).then(g => (commune = g));
 function nouvelleCarte(id) {
   const m = L.map(id, { zoomControl: true, attributionControl: true }).setView(CENTRE, 14);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  m.createPane('noms'); m.getPane('noms').style.zIndex = 350; m.getPane('noms').style.pointerEvents = 'none';
+  const plan = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '© contributeurs <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(m);
+  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, maxNativeZoom: 18, attribution: 'Imagerie © Esri, Maxar, Earthstar Geographics',
+  });
+  const noms = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, maxNativeZoom: 18, pane: 'noms',
+  });
+  const satNoms = L.layerGroup([satellite, noms]);
+  L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, null, { position: 'topright', collapsed: window.innerWidth < 600 }).addTo(m);
   communeP.then(g => {
     const c = L.geoJSON(g, { filter: f => f.geometry.type !== 'Point', style: { color: '#0F4A23', weight: 2.5, dashArray: '6 5', fill: false }, interactive: false }).addTo(m);
     m.fitBounds(c.getBounds(), { padding: [10, 10] });
   });
   return m;
+}
+let senegal = null;
+const senegalP = fetch('senegal.geojson').then(r => r.json()).then(g => (senegal = g));
+let coucheSenegal;
+function afficherSenegal(m, oui) {
+  coucheSenegal?.remove(); coucheSenegal = null;
+  if (oui) senegalP.then(g => {
+    coucheSenegal = L.geoJSON(g, { style: { color: '#7B1FA2', weight: 2.5, dashArray: '10 6', fill: false }, interactive: false })
+      .bindTooltip('Frontière du Sénégal', { sticky: true }).addTo(m);
+  });
 }
 function hexFeature(h) { return { type: 'Feature', geometry: h.geojson, properties: h }; }
 
@@ -93,6 +112,7 @@ async function majCarte1() {
   $('charg1').classList.add('visible');
   try {
     const p = {}; if (filtre.op) p.p_operateur = filtre.op; if (filtre.reseau) p.p_reseau = filtre.reseau;
+    afficherSenegal(carte1, filtre.etendue === 'tout');
     if (filtre.etendue === 'tout') { await majAuDela(p); $('charg1').classList.remove('visible'); return; }
     const hex = await rpc('resultats_grille', p);
     couche1?.remove();
@@ -129,7 +149,7 @@ async function majAuDela(p) {
   if (hex.length) carte1.fitBounds(couche1.getBounds(), { padding: [20, 20], maxZoom: 14 });
   const hors = hex.filter(h => !h.dans_commune).length;
   $('resume1').textContent = `Toutes les mesures, y compris celles faites pendant les trajets hors de la commune : ${hors} zone${hors > 1 ? 's' : ''} hors de Diofior. ` +
-    'Ces données ne font pas partie de l\'analyse du mémoire (perspectives). Pour protéger la vie privée, les hexagones font ici 500 m de côté et comptent au moins 5 mesures.';
+    'Ces données ne font pas partie de l\'analyse du mémoire (perspectives) ; la zone d\'étude est la commune de Diofior (tirets verts), la frontière du Sénégal est en violet. Pour protéger la vie privée, les hexagones font ici 500 m de côté et comptent au moins 5 mesures.';
 }
 function popupHex(h) {
   let s = `<b>${h.qualite == null ? 'Pas assez de mesures' : QUALITES[h.qualite]}</b><br>${fmt(h.nb)} mesure${h.nb > 1 ? 's' : ''}`;

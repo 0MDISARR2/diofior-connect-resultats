@@ -55,3 +55,5 @@ a{color:var(--vert)}
 .periode-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-bottom:12px}
 .periode-wrap .note{margin:0}
 .bandeau.secours{background:#FFE0B2}
+.leaflet-control-layers{font-family:'Poppins',sans-serif;font-size:13px;border-radius:12px!important}
+.leaflet-control-layers-expanded{padding:6px 10px}
