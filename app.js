@@ -84,6 +84,20 @@ function nouvelleCarte(id) {
   });
   const satNoms = L.layerGroup([satellite, noms]);
   L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, null, { position: 'topright', collapsed: window.innerWidth < 600 }).addTo(m);
+  // Bouton « Diofior » : recentre la carte sur la commune (utile après un zoom ou en mode « Au-delà »)
+  const Recentrer = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd: () => {
+      const b = L.DomUtil.create('button', 'bouton-diofior');
+      b.type = 'button'; b.title = 'Recentrer la carte sur Diofior';
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" stroke-width="2"/></svg><span>Diofior</span>';
+      L.DomEvent.disableClickPropagation(b);
+      L.DomEvent.on(b, 'click', () => communeP.then(g =>
+        m.flyToBounds(L.geoJSON(g, { filter: f => f.geometry.type !== 'Point' }).getBounds(), { padding: [10, 10], duration: 1 })));
+      return b;
+    },
+  });
+  new Recentrer().addTo(m);
   communeP.then(g => {
     const c = L.geoJSON(g, { filter: f => f.geometry.type !== 'Point', style: { color: '#0F4A23', weight: 2.5, dashArray: '6 5', fill: false }, interactive: false }).addTo(m);
     m.fitBounds(c.getBounds(), { padding: [10, 10] });
