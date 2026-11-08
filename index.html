@@ -24,6 +24,7 @@
     <button data-onglet="zones">Zones</button>
     <button data-onglet="participation">Participation</button>
     <button data-onglet="methode">Méthode</button>
+    <button data-onglet="appli" class="appli">Télécharger l'appli</button>
   </nav>
 </header>
 
@@ -131,6 +132,30 @@
     <h3>Sources</h3>
     <p>Mesures : participants de Diofior Connect. Contour de la commune et fond de carte : © contributeurs <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> (ODbL). Frontière du Sénégal : Natural Earth (domaine public). Imagerie satellite : © Esri, Maxar, Earthstar Geographics.</p>
     <p class="auteur">Projet de mémoire de Licence 3 · Mouhamed Sarr · ISI Dakar, 2026</p>
+  </section>
+
+  <!-- APPLI -->
+  <section id="p-appli" class="panneau texte">
+    <h2>Télécharger Diofior Connect</h2>
+    <p>Application Android gratuite, sans publicité, qui mesure le réseau mobile pendant tes trajets. Pas encore disponible sur iPhone.</p>
+    <a class="gros-bouton" href="Diofior-Connect.apk" download>Télécharger l'application (Android)</a>
+    <p class="note" id="apk-info"></p>
+    <h3>Installer en 4 étapes</h3>
+    <ol>
+      <li>Touche le bouton ci-dessus. Si le navigateur demande une confirmation, choisis <b>« Télécharger quand même »</b>.</li>
+      <li>Ouvre le fichier <b>Diofior-Connect.apk</b> depuis les notifications ou le dossier Téléchargements.</li>
+      <li>Si Android le demande, autorise l'installation depuis ce navigateur : <b>Paramètres → Autoriser cette source</b>.</li>
+      <li>Ouvre l'appli, accepte la charte de participation, puis lance un <b>parcours</b>.</li>
+    </ol>
+    <h3>Pourquoi un message d'avertissement&nbsp;?</h3>
+    <p>Android et Chrome affichent ce message pour <b>toute</b> application installée en dehors du Play Store. Il ne signifie pas que l'application est dangereuse.</p>
+    <ul>
+      <li>L'application est compilée automatiquement à partir de son code source et toujours signée avec la même clé : chaque mise à jour est vérifiée.</li>
+      <li>Elle ne collecte ni nom, ni numéro, ni contacts, ni messages (voir l'onglet Méthode).</li>
+      <li>Elle n'accède qu'à la position et à l'état du réseau, nécessaires à la mesure.</li>
+      <li id="vt-ligne" hidden>Analyse antivirus : <a id="vt-lien" target="_blank" rel="noopener">rapport VirusTotal</a>.</li>
+    </ul>
+    <p class="note">Empreinte SHA-256 du fichier, pour vérifier qu'il n'a pas été modifié : <code id="apk-sha">…</code></p>
   </section>
 </main>
 

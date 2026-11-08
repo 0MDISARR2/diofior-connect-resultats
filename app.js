@@ -53,7 +53,7 @@ function ouvrir(onglet) {
   document.querySelectorAll('.onglets button').forEach(b => b.classList.toggle('actif', b.dataset.onglet === onglet));
   document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'p-' + onglet));
   try { history.replaceState(null, '', '#' + onglet); } catch (_) {}
-  if (!prets[onglet]) { prets[onglet] = true; ({ carte: initCarte, operateurs: initOperateurs, zones: initZones, participation: initParticipation })[onglet]?.(); }
+  if (!prets[onglet]) { prets[onglet] = true; ({ carte: initCarte, operateurs: initOperateurs, zones: initZones, participation: initParticipation, appli: initAppli })[onglet]?.(); }
   setTimeout(() => { carte1?.invalidateSize(); carte2?.invalidateSize(); }, 50);
 }
 $('onglets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ouvrir(b.dataset.onglet); });
@@ -332,6 +332,23 @@ document.querySelector('.telechargements').addEventListener('click', async e => 
   } catch (err) { erreur($('dl-note'), err); }
 });
 
+// ---------- Page de téléchargement ----------
+// Rapport VirusTotal du fichier publié (à renseigner après analyse sur virustotal.com)
+const LIEN_VIRUSTOTAL = '';
+async function initAppli() {
+  try {
+    const [v, sha, tete] = await Promise.all([
+      fetch('version.txt', { cache: 'no-store' }).then(r => r.ok ? r.text() : ''),
+      fetch('Diofior-Connect.apk.sha256', { cache: 'no-store' }).then(r => r.ok ? r.text() : ''),
+      fetch('Diofior-Connect.apk', { method: 'HEAD', cache: 'no-store' }).catch(() => null),
+    ]);
+    const taille = tete?.headers.get('content-length');
+    $('apk-info').textContent = [v.trim() && `Version ${v.trim()}`, taille && `${Math.round(taille / 1048576)} Mo`].filter(Boolean).join(' · ');
+    $('apk-sha').textContent = sha.split(' ')[0] || 'indisponible';
+  } catch (e) { console.error(e); }
+  if (LIEN_VIRUSTOTAL) { $('vt-lien').href = LIEN_VIRUSTOTAL; $('vt-ligne').hidden = false; }
+}
+
 // ---------- Démarrage ----------
 document.querySelectorAll('.carte-graph canvas').forEach(c => { c.parentElement.style.height = (+c.getAttribute('height') + 28) + 'px'; });
 const dateFr = (d, o = { day: 'numeric', month: 'long' }) => new Date(d + (d.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('fr-FR', o);
@@ -360,7 +377,7 @@ groupe('f-periode', v => {
   if (prets.operateurs) initOperateurs();
   if (prets.participation) initParticipation();
 });
-const ONGLETS = ['carte', 'operateurs', 'zones', 'participation', 'methode'];
+const ONGLETS = ['carte', 'operateurs', 'zones', 'participation', 'methode', 'appli'];
 const depuisAdresse = () => { const h = location.hash.slice(1); ouvrir(ONGLETS.includes(h) ? h : 'carte'); };
 window.addEventListener('hashchange', depuisAdresse);
 depuisAdresse();
