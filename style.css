@@ -67,3 +67,8 @@ code{font-size:12px;word-break:break-all;background:#eef2ec;padding:2px 6px;bord
 .bouton-diofior{display:flex;align-items:center;gap:6px;background:#fff;color:var(--vert-fonce);border:2px solid rgba(0,0,0,.2);border-radius:8px;padding:5px 10px;font:600 13px 'Poppins',sans-serif;cursor:pointer;box-shadow:0 1px 5px rgba(0,0,0,.15)}
 .bouton-diofior:hover{background:var(--vert-clair)}
 .etiquette-secteur{background:rgba(255,255,255,.88);border:1px solid #0F4A23;border-radius:8px;padding:1px 7px;font:700 12px 'Poppins',sans-serif;color:#0F4A23;white-space:nowrap;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.etiquette-lieu{font:700 11px/1.2 'Poppins',sans-serif;color:#0D47A1;text-align:center;white-space:nowrap;transform:translate(-50%,-50%);text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff,0 0 4px #fff}
+.legende-reperes{margin-top:6px;align-items:center}
+.legende-reperes b{font-weight:600}
+.pastille.contour{border:2px solid;box-sizing:border-box}
+.etiquette-secteur.exemple{position:static;transform:none;display:inline-block;font-style:normal;font-size:11px;margin-right:6px}

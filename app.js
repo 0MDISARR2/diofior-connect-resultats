@@ -71,6 +71,10 @@ function erreur(el, e) { el.textContent = 'Impossible de charger les résultats 
 let commune = null;
 const lieuxP = fetch('lieux_publics.geojson').then(r => r.json());
 const secteursP = fetch('secteurs.geojson').then(r => r.json());
+// Noms complets affiches en permanence sur la carte (grands etablissements)
+const NOMS_AFFICHES = { 'Lycée El Hadji Mamadou Lamine Faye': 'Lycée El Hadji<br>Mamadou Lamine Faye',
+  'Centre de Formation Professionnelle': 'Centre de formation<br>professionnelle',
+  'CEM Sérigne Abdoulaye Diome': 'CEM Serigne<br>Abdoulaye Diome' };
 const COUL_LIEU = { 'Enseignement': '#1565C0', 'Santé': '#C62828', 'Culte': '#6A1B9A', 'Administration': '#B07800',
   'Commerce et transport': '#E65100', 'Sport': '#2E7D32', 'Cimetière et bois sacré': '#4E342E' };
 const communeP = fetch('commune.geojson').then(r => r.json()).then(g => (commune = g));
@@ -93,7 +97,11 @@ function nouvelleCarte(id) {
   lieuxP.then(g => L.geoJSON(g, { pane: 'reperes',
     style: f => ({ color: COUL_LIEU[f.properties.type] || '#333', weight: 2, fillColor: COUL_LIEU[f.properties.type] || '#333', fillOpacity: .12 }),
     onEachFeature: (f, l) => l.bindTooltip(`<b>${f.properties.nom}</b><br>${f.properties.type}`, { sticky: true }),
-  }).addTo(lieux));
+  }).addTo(lieux)).then(() => lieuxP).then(g => g.features.forEach(f => {
+    const nom = NOMS_AFFICHES[f.properties.nom]; if (!nom) return;
+    L.marker(L.geoJSON(f).getBounds().getCenter(), { interactive: false, keyboard: false,
+      icon: L.divIcon({ className: 'etiquette-lieu', html: nom, iconSize: null }) }).addTo(lieux);
+  }));
   secteursP.then(g => L.geoJSON(g, { pointToLayer: (f, ll) => L.marker(ll, { interactive: false, keyboard: false,
     icon: L.divIcon({ className: 'etiquette-secteur', html: f.properties.nom, iconSize: null }) }) }).addTo(secteurs));
   lieux.addTo(m); secteurs.addTo(m);
@@ -133,6 +141,12 @@ function hexFeature(h) { return { type: 'Feature', geometry: h.geojson, properti
 
 // ---------- 1. Carte de qualité ----------
 let carte1, couche1, filtre = { op: '', reseau: '', etendue: '' };
+function legendeReperes() {
+  return '<div class="legende legende-reperes"><b>Lieux publics :</b>' +
+    Object.entries(COUL_LIEU).map(([t, c]) => `<span><i class="pastille contour" style="border-color:${c};background:${c}22"></i>${t}</span>`).join('') +
+    '<span><i class="etiquette-secteur exemple">Secteur</i>nom de secteur (plan de lotissement)</span></div>';
+}
+document.querySelectorAll('#legende1, #legende2').forEach(el => el.insertAdjacentHTML('afterend', legendeReperes()));
 function legendeQualite() {
   $('legende1').innerHTML = QUALITES.map((q, i) => `<span><i class="pastille q${i}"></i>${q}</span>`).join('') +
     '<span><i class="pastille qn"></i>Pas assez de mesures</span>';
