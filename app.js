@@ -69,6 +69,10 @@ function erreur(el, e) { el.textContent = 'Impossible de charger les résultats 
 
 // ---------- Fond de carte ----------
 let commune = null;
+const lieuxP = fetch('lieux_publics.geojson').then(r => r.json());
+const secteursP = fetch('secteurs.geojson').then(r => r.json());
+const COUL_LIEU = { 'Enseignement': '#1565C0', 'Santé': '#C62828', 'Culte': '#6A1B9A', 'Administration': '#B07800',
+  'Commerce et transport': '#E65100', 'Sport': '#2E7D32', 'Cimetière et bois sacré': '#4E342E' };
 const communeP = fetch('commune.geojson').then(r => r.json()).then(g => (commune = g));
 function nouvelleCarte(id) {
   const m = L.map(id, { zoomControl: true, attributionControl: true }).setView(CENTRE, 14);
@@ -83,7 +87,18 @@ function nouvelleCarte(id) {
     maxZoom: 19, maxNativeZoom: 18, pane: 'noms',
   });
   const satNoms = L.layerGroup([satellite, noms]);
-  L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, null, { position: 'topright', collapsed: window.innerWidth < 600 }).addTo(m);
+  // Reperes : lieux publics (numerises sur Google Earth) et noms de secteurs (plan de lotissement)
+  m.createPane('reperes'); m.getPane('reperes').style.zIndex = 450;
+  const lieux = L.layerGroup(), secteurs = L.layerGroup();
+  lieuxP.then(g => L.geoJSON(g, { pane: 'reperes',
+    style: f => ({ color: COUL_LIEU[f.properties.type] || '#333', weight: 2, fillColor: COUL_LIEU[f.properties.type] || '#333', fillOpacity: .12 }),
+    onEachFeature: (f, l) => l.bindTooltip(`<b>${f.properties.nom}</b><br>${f.properties.type}`, { sticky: true }),
+  }).addTo(lieux));
+  secteursP.then(g => L.geoJSON(g, { pointToLayer: (f, ll) => L.marker(ll, { interactive: false, keyboard: false,
+    icon: L.divIcon({ className: 'etiquette-secteur', html: f.properties.nom, iconSize: null }) }) }).addTo(secteurs));
+  lieux.addTo(m); secteurs.addTo(m);
+  L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, { 'Lieux publics': lieux, 'Noms des secteurs': secteurs },
+    { position: 'topright', collapsed: window.innerWidth < 600 }).addTo(m);
   // Bouton « Diofior » : recentre la carte sur la commune (utile après un zoom ou en mode « Au-delà »)
   const Recentrer = L.Control.extend({
     options: { position: 'topleft' },
