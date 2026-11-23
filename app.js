@@ -110,7 +110,7 @@ function nouvelleCarte(id) {
       const p = f.properties, c = COUL_OP[p.operateur] || '#777';
       return L.marker(ll, { icon: L.divIcon({ className: 'icone-antenne', iconSize: [26, 30], iconAnchor: [13, 28],
         html: `<svg viewBox="0 0 26 30" width="26" height="30"><path d="M13 3 L5 27 M13 3 L21 27 M8 18 H18 M9.5 12 H16.5" stroke="${c}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="13" cy="3.5" r="3" fill="${p.etat === 'inactif' ? '#fff' : c}" stroke="${c}" stroke-width="2"/></svg>` }) })
-      .bindTooltip(`<b>Antenne ${p.operateur}${p.etat === 'inactif' ? ' (inactive)' : ''}</b><br>${p.technologies || 'technologie inconnue'}${p.station ? '<br>Station 4G n° ' + p.station : ''}<br><span style="color:#666">${p.source}</span>`);
+      .bindTooltip(`<b>Antenne ${p.operateur}${p.etat === 'inactif' ? ' (inactive)' : ''}</b><br>Site ${p.site}${p.technologies ? '<br>' + p.technologies : ''}${p.station ? '<br>Station 4G n° ' + p.station : ''}<br><span style="color:#666">${p.source}</span>`);
     } }).addTo(antennes));
   lieux.addTo(m); secteurs.addTo(m); antennes.addTo(m);
   L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, { 'Lieux publics': lieux, 'Noms des secteurs': secteurs, 'Antennes': antennes },
