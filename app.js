@@ -72,6 +72,7 @@ let commune = null;
 const lieuxP = fetch('lieux_publics.geojson').then(r => r.json());
 const secteursP = fetch('secteurs.geojson').then(r => r.json());
 const antennesP = fetch('antennes.geojson').then(r => r.json());
+const sousQuartiersP = fetch('sous_quartiers.geojson').then(r => r.json());
 // Noms complets affiches en permanence sur la carte (grands etablissements)
 const NOMS_AFFICHES = { 'Lycée El Hadji Mamadou Lamine Faye': 'Lycée El Hadji<br>Mamadou Lamine Faye',
   'Centre de Formation Professionnelle': 'Centre de formation<br>professionnelle',
@@ -112,8 +113,15 @@ function nouvelleCarte(id) {
         html: `<svg viewBox="0 0 26 30" width="26" height="30"><path d="M13 3 L5 27 M13 3 L21 27 M8 18 H18 M9.5 12 H16.5" stroke="${c}" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="13" cy="3.5" r="3" fill="${p.etat === 'inactif' ? '#fff' : c}" stroke="${c}" stroke-width="2"/></svg>` }) })
       .bindTooltip(`<b>Antenne ${p.operateur}${p.etat === 'inactif' ? ' (inactive)' : ''}</b><br>Site ${p.site}${p.technologies ? '<br>' + p.technologies : ''}${p.station ? '<br>Station 4G n° ' + p.station : ''}<br><span style="color:#666">${p.source}</span>`);
     } }).addTo(antennes));
+  // Sous-quartiers : decoupage trace a la main sur le plan de lotissement (limites schematiques, non officielles)
+  const sousQuartiers = L.layerGroup();
+  sousQuartiersP.then(g => L.geoJSON(g, { pane: 'reperes', interactive: false,
+    style: { color: '#37474F', weight: 1.8, dashArray: '2 5', fill: false },
+    onEachFeature: (f, l) => l.bindTooltip(f.properties.nom, { permanent: true, direction: 'center', className: 'etiquette-sous-quartier' }),
+  }).addTo(sousQuartiers));
   lieux.addTo(m); secteurs.addTo(m); antennes.addTo(m);
-  L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, { 'Lieux publics': lieux, 'Noms des secteurs': secteurs, 'Antennes': antennes },
+  L.control.layers({ 'Plan': plan, 'Satellite': satNoms }, { 'Lieux publics': lieux, 'Noms des secteurs': secteurs,
+    'Sous-quartiers (tracé à la main)': sousQuartiers, 'Antennes': antennes },
     { position: 'topright', collapsed: window.innerWidth < 600 }).addTo(m);
   // Bouton « Diofior » : recentre la carte sur la commune (utile après un zoom ou en mode « Au-delà »)
   const Recentrer = L.Control.extend({
@@ -153,6 +161,7 @@ function legendeReperes() {
   return '<div class="legende legende-reperes"><b>Lieux publics :</b>' +
     Object.entries(COUL_LIEU).map(([t, c]) => `<span><i class="pastille contour" style="border-color:${c};background:${c}22"></i>${t}</span>`).join('') +
     '<span><i class="etiquette-secteur exemple">Secteur</i>nom de secteur (plan de lotissement)</span>' +
+    '<span><i class="trait-sous-quartier"></i>sous-quartier (tracé à la main, limites à confirmer ; couche à activer)</span>' +
     '<span><b>Antennes :</b></span>' + Object.entries(COUL_OP).map(([o, c]) => `<span><svg width="14" height="16" viewBox="0 0 26 30"><path d="M13 3 L5 27 M13 3 L21 27 M8 18 H18" stroke="${c}" stroke-width="3" fill="none"/><circle cx="13" cy="4" r="3.5" fill="${c}"/></svg>${o}</span>`).join('') + '</div>';
 }
 document.querySelectorAll('#legende1, #legende2').forEach(el => el.insertAdjacentHTML('afterend', legendeReperes()));

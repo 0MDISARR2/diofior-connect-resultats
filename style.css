@@ -74,3 +74,7 @@ code{font-size:12px;word-break:break-all;background:#eef2ec;padding:2px 6px;bord
 .etiquette-secteur.exemple{position:static;transform:none;display:inline-block;font-style:normal;font-size:11px;margin-right:6px}
 .icone-antenne{background:none;border:0}
 .icone-antenne svg{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 2px #fff)}
+
+.etiquette-sous-quartier{background:transparent;border:0;box-shadow:none;padding:0;font:italic 600 11px 'Poppins',sans-serif;color:#263238;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff}
+.etiquette-sous-quartier::before{display:none}
+.trait-sous-quartier{display:inline-block;width:22px;height:0;border-top:2px dotted #37474F;vertical-align:middle;margin-right:6px}
