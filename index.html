@@ -24,11 +24,13 @@
     <button data-onglet="zones">Zones</button>
     <button data-onglet="participation">Participation</button>
     <button data-onglet="methode">Méthode</button>
+    <button data-onglet="avis" class="avis">Votre avis</button>
     <button data-onglet="appli" class="appli">Télécharger l'appli</button>
   </nav>
 </header>
 
 <main>
+  <a class="appel-avis" id="appel-avis" href="#avis">Vous avez participé à la collecte ? <b>Donnez votre avis en 2 minutes →</b></a>
   <div class="periode-wrap">
     <div class="groupe periode" id="f-periode">
       <button data-v="" class="actif">Toutes les données</button><button data-v="memoire" id="b-memoire">Période du mémoire</button>
@@ -134,6 +136,51 @@
     <p class="auteur">Projet de mémoire de Licence 3 · Mouhamed Sarr · ISI Dakar, 2026</p>
   </section>
 
+  <!-- AVIS -->
+  <section id="p-avis" class="panneau texte">
+    <h2>Votre avis sur Diofior Connect</h2>
+    <p class="lead">Merci d'avoir mesuré le réseau de Diofior. Ce questionnaire anonyme prend 2 à 3 minutes. Vos réponses serviront à améliorer l'application avant une version plus large, et à évaluer l'outil dans le mémoire.</p>
+    <p class="note">Même si vous avez arrêté d'utiliser l'application après quelques minutes, votre avis compte : dites-nous pourquoi. Aucun nom ni numéro n'est demandé.</p>
+    <p class="compteur" id="avis-compteur" hidden></p>
+    <form id="f-avis" novalidate>
+      <h3>1. Votre expérience <span class="note">(obligatoire)</span></h3>
+      <p class="note">Pour chaque phrase : 1 = pas du tout d'accord · 5 = tout à fait d'accord.</p>
+      <div id="sus"></div>
+      <h3>2. Votre utilisation</h3>
+      <fieldset class="choix"><legend>Votre opérateur principal</legend>
+        <label><input type="radio" name="operateur" value="Orange"> Orange</label><label><input type="radio" name="operateur" value="Yas"> Yas</label><label><input type="radio" name="operateur" value="Expresso"> Expresso</label><label><input type="radio" name="operateur" value="Autre"> Autre</label>
+      </fieldset>
+      <fieldset class="choix"><legend>Pendant combien de jours avez-vous gardé l'application active ?</legend>
+        <label><input type="radio" name="duree" value="1 jour"> 1 jour</label><label><input type="radio" name="duree" value="2 à 6 jours"> 2 à 6 jours</label><label><input type="radio" name="duree" value="7 jours ou plus"> 7 jours ou plus</label>
+      </fieldset>
+      <fieldset class="choix"><legend>Avez-vous consulté ce site de résultats pendant la collecte ?</legend>
+        <label><input type="radio" name="site" value="oui"> Oui</label><label><input type="radio" name="site" value="non"> Non</label>
+      </fieldset>
+      <h3>3. La prochaine version</h3>
+      <fieldset class="choix multi"><legend>Qu'aimeriez-vous dans une future version nationale ? (plusieurs choix possibles)</legend>
+        <label><input type="checkbox" name="souhaits" value="Interface en wolof"> Interface en wolof</label>
+        <label><input type="checkbox" name="souhaits" value="Version iPhone"> Version iPhone</label>
+        <label><input type="checkbox" name="souhaits" value="Disponible sur le Play Store"> Disponible sur le Play Store</label>
+        <label><input type="checkbox" name="souhaits" value="Comparer les opérateurs près de chez moi"> Comparer les opérateurs près de chez moi</label>
+        <label><input type="checkbox" name="souhaits" value="Signaler une coupure de réseau"> Signaler une coupure de réseau</label>
+        <label><input type="checkbox" name="souhaits" value="Alerte dans les zones de signal faible"> Alerte dans les zones de signal faible</label>
+        <label><input type="checkbox" name="souhaits" value="Tests de débit moins gourmands en données"> Tests de débit moins gourmands en données</label>
+        <label><input type="checkbox" name="souhaits" value="Carte de tout le Sénégal"> Carte de tout le Sénégal</label>
+      </fieldset>
+      <label class="libre">Quelles difficultés avez-vous rencontrées ? Si vous avez arrêté, pourquoi ?<textarea name="difficultes" maxlength="1500" rows="3"></textarea></label>
+      <label class="libre">Qu'avez-vous apprécié ?<textarea name="apprecie" maxlength="1500" rows="3"></textarea></label>
+      <label class="libre">Que faudrait-il améliorer ?<textarea name="ameliorations" maxlength="1500" rows="3"></textarea></label>
+      <input type="text" name="site_web" class="piege" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="erreur" id="avis-erreur" hidden></p>
+      <button type="submit" class="gros-bouton" id="avis-envoyer">Envoyer mon avis</button>
+    </form>
+    <div id="avis-merci" class="merci" hidden>
+      <h3>Merci !</h3>
+      <p>Votre avis a bien été envoyé. Il aidera à construire la prochaine version de Diofior Connect.</p>
+    </div>
+    <p class="note">Questionnaire SUS (System Usability Scale), version française validée (Gronier et Baudet, 2021). Les réponses sont anonymes, ne sont pas publiées individuellement et ne servent qu'à améliorer l'application et au mémoire.</p>
+  </section>
+
   <!-- APPLI -->
   <section id="p-appli" class="panneau texte">
     <h2>Télécharger Diofior Connect</h2>
@@ -163,6 +210,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="avis.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

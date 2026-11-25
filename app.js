@@ -52,8 +52,10 @@ const prets = {};
 function ouvrir(onglet) {
   document.querySelectorAll('.onglets button').forEach(b => b.classList.toggle('actif', b.dataset.onglet === onglet));
   document.querySelectorAll('.panneau').forEach(p => p.classList.toggle('actif', p.id === 'p-' + onglet));
+  document.querySelector('.periode-wrap').hidden = onglet === 'avis';
+  $('appel-avis').hidden = onglet === 'avis';
   try { history.replaceState(null, '', '#' + onglet); } catch (_) {}
-  if (!prets[onglet]) { prets[onglet] = true; ({ carte: initCarte, operateurs: initOperateurs, zones: initZones, participation: initParticipation, appli: initAppli })[onglet]?.(); }
+  if (!prets[onglet]) { prets[onglet] = true; ({ carte: initCarte, operateurs: initOperateurs, zones: initZones, participation: initParticipation, appli: initAppli, avis: initAvis })[onglet]?.(); }
   setTimeout(() => { carte1?.invalidateSize(); carte2?.invalidateSize(); }, 50);
 }
 $('onglets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ouvrir(b.dataset.onglet); });
@@ -438,7 +440,7 @@ groupe('f-periode', v => {
   if (prets.operateurs) initOperateurs();
   if (prets.participation) initParticipation();
 });
-const ONGLETS = ['carte', 'operateurs', 'zones', 'participation', 'methode', 'appli'];
+const ONGLETS = ['carte', 'operateurs', 'zones', 'participation', 'methode', 'avis', 'appli'];
 const depuisAdresse = () => { const h = location.hash.slice(1); ouvrir(ONGLETS.includes(h) ? h : 'carte'); };
 window.addEventListener('hashchange', depuisAdresse);
 depuisAdresse();
